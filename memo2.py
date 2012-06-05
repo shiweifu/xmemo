@@ -68,7 +68,7 @@ class SingleSelectMemoItem(MemoItem):
         answ = self.chooses[-1][-3:][-2]
         print answ
         #sys.exit(-1)
-        self._answer = answ
+        self.answer = answ
         self.chooses[-1] = self.chooses[-1][:-3]
 
         for i in xrange(0,len(self.chooses)):
@@ -143,6 +143,10 @@ class Memo(object):
         if _init_type == Memo.LOADFILE:
             self._load_memo()
 
+        print len(self.judge_list)
+        print len(self.qa_list)
+        print len(self.ss_list)
+
     def _load_memo(self):
         _read_memo_head = lambda _f: \
                         struct.unpack(Memo.MEMO_HEAD_FMT, _f.read(2))
@@ -171,13 +175,17 @@ class Memo(object):
             return memo_class_list[typ](k,v)
 
         f = open(self.filename)
+        print self.filename
+
         mh = _read_memo_head(f)
         if mh[0] != Memo.MEMO_FLAG:
             raise NotMemoFileError()
         i = mh[1]
 
         for x in xrange(0, i):
+
             item = _read_and_create_memo_item(f)
+            print item.get_type()
             self.mi_dict[item.get_type()].append(item)
         f.close()        
 
@@ -186,19 +194,28 @@ class Memo(object):
 
     def start_study_judge(self):
         """ start study judge """
-        failure = self.judge_list
-        #print self.judge_list
+        fail_item_id = [x for x in xrange(0, len(self.judge_list))]
+        #failure = self.ss_list
+        print "共有 %d 道题，开始吧" % len(fail_item_id)
 
-        while failure != []:
+        failure = self.judge_list
+        right = []
+        while fail_item_id != []:
+            fail_item_id = []
+#            while failure != []:
             i = 0
             while i < len(failure):
                 print failure[i]
-                an = raw_input()
-                if failure[i].vaild(an) == True:
+                an = raw_input("请输入选项：")
+                if failure[i].vaild(an.strip().upper()) == True:
                     print "right"
-                    del(failure[i])
-                i += 1
-            print failure
+                    print "这是 %d 题" % i
+                    i += 1
+                else:
+                    fail_item_id.append(i)
+            print fail_item_id
+            print "有 %d 道题做错了" % len(fail_item_id)
+            failure = [failure[x] for x in fail_item_id]
 
     def add_memo_item(self, _type, _s, _a):
         """ add memo item to array """
@@ -206,19 +223,43 @@ class Memo(object):
         pass
 
     def start_study_single_select(self):
+        #failure = self.ss_list
+
+        fail_item_id = [x for x in xrange(0, len(self.ss_list))]
+        #failure = self.ss_list
+        print "共有 %d 道题，开始吧" % len(fail_item_id)
         failure = self.ss_list
-        while failure != []:
-            for i in xrange(0, len(self.ss_list)):
+        right = []
+        while fail_item_id != []:
+            fail_item_id = []
+#            while failure != []:
+            i = 0
+            while i < len(failure):
                 print failure[i]
-                answ = raw_input("请输入选项：")
-                if failure[i].vaild(answ):
-                    del failure[i]
-
-
-
+                an = raw_input("请输入选项：")
+                if failure[i].vaild(an.strip().upper()) == True:
+                    print "right"
+                    print "这是 %d 题" % i
+                    i += 1
+                else:
+                    fail_item_id.append(i)
+            print fail_item_id
+            print "有 %d 道题做错了" % len(fail_item_id)
+            failure = [failure[x] for x in fail_item_id]
 
 def main():
-    memo = Memo(Memo.LOADFILE, "single_select.memo")
+    import sys
+
+    memo_file = "single_select.memo"
+    #memo_file = "test.memo"
+
+#    if len(sys.argv) == 2:
+#        memo_file = sys.argv[1]
+    # print len(sys.argv)
+    # print memo_file
+    #sys.exit(-1)
+#    print memo_file
+    memo = Memo(Memo.LOADFILE, memo_file)
 #    memo.start_study_judge()
     memo.start_study_single_select()
 
